@@ -1,0 +1,6 @@
+ip=0.0.0.0
+port=8080
+develope=true
+debug=true
+worker_name=api-server-base-worker
+log_level=INFO     #other:DEBUG, INFO or WARNING

@@ -1,0 +1,13 @@
+FROM python:3.8 as build-env
+COPY ./requirements.txt ./
+RUN pip install -r requirements.txt
+
+COPY ./pkg ./pkg
+COPY ./src/master/main.py ./main.py
+
+pyinstaller -F ./main.py
+
+FROM ubuntu:18.04
+COPY --from=build-env /dist/main.exe /main.exe
+
+CMD ["/bin/bash"]
