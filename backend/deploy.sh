@@ -6,6 +6,7 @@ if [ ! $# == 1 ]; then
 fi
 
 if [ "$1" = "deploy" ]; then
+  kubectl apply -f deploy/local-storage.yaml
   kubectl apply -f deploy/service-account.yaml
   kubectl apply -f deploy/cluster-role-binding.yaml
   kubectl apply -f deploy/master.yaml
@@ -22,6 +23,7 @@ elif [ "$1" = "redeploy" ]; then
   kubectl delete -f deploy/worker.yaml
   kubectl delete -f deploy/master-svc.yaml
 
+  kubectl apply -f deploy/local-storage.yaml
   kubectl apply -f deploy/service-account.yaml
   kubectl apply -f deploy/cluster-role-binding.yaml
   kubectl apply -f deploy/master.yaml

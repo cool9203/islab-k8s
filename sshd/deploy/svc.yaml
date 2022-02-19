@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+type:
+metadata:
+  labels:
+    name: islab-sshd
+  name: islab-sshd
+spec:
+  selector:
+    app: islab-sshd
+  type: NodePort
+  ports:
+    - port: 22
+      nodePort: 30447
+      targetPort: 22
+      protocol: TCP

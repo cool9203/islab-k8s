@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {name}
+  labels:
+    app: {name}
+spec:
+  containers:
+  - name: {name}
+    image: {image}
+    imagePullPolicy: Never
+    resources:
+      requests:
+        memory: "{memory}M"
+        cpu: "{cpu}"
+    ports:
+    - containerPort: 22
+    env:
+      - name: NVIDIA_VISIBLE_DEVICES
+        value: "none"
+    volumeMounts:
+    - mountPath: /root/data
+      name: pv-storage
+    - mountPath: /root/islab_gpu
+      readOnly: true
+      name: islab-gpu-package
+  volumes:
+    - name: pv-storage
+      persistentVolumeClaim:
+        claimName: {name}
+    - name: islab-gpu-package
+      hostPath:
+        path: /home/ubuntu/k8s/web/client
+        type: Directory

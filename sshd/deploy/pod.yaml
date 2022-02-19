@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: islab-sshd
+  labels:
+    app: islab-sshd
+spec:
+  containers:
+  - name: sshd
+    image: yogawulala/islab-sshd
+    resources:
+      requests:
+        memory: "2048M"
+        cpu: "4"
+    ports:
+      - containerPort: 22
