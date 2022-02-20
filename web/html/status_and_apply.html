@@ -1,0 +1,29 @@
+<html>
+    <meta>
+    <title>機器運作狀態與申請</title>
+    <meta http-equiv="Content-Language" content="zh-cn">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script
+        src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+        crossorigin="anonymous"></script>
+    </meta>
+
+    <body onload="get_machine_all_list()">
+        <div id="gantt">
+
+        </div>
+        <div>
+            <label>機器名稱：</label>
+            <select id="machine_name"></select>
+            <input id="get_status" type="submit" onclick="get_machine_status()" value="確認機器狀態">
+            <input id="get_link_string" type="submit" onclick="get_machine_link_string()" value="取得機器連線字串">
+            <br>
+        </div>
+        <button onclick="if (confirm('確定要開啟pod嗎?')) apply('CREATE')">開啟</button>
+        <button onclick="if (confirm('確定要關閉pod嗎?')) apply('DELETE')">關閉</button>
+        <button onclick="if (confirm('確定要重開pod嗎?')) apply('RESTART')">重啟</button>
+        <a href="management.html">返回</a>
+    </body>
+    <script type="text/javascript" src="islab-api.js"></script>
+</html>

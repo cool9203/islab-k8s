@@ -1,0 +1,41 @@
+<html>
+    <meta>
+    <title>登記使用者的機器資料</title>
+    <meta http-equiv="Content-Language" content="zh-cn">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script
+        src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+        crossorigin="anonymous"></script>
+    </meta>
+
+    <body>
+        <div id="gantt">
+
+        </div>
+        <div>
+            <label>機器名稱：</label>
+            <input id="name" type="text" required>
+            <br>
+
+            <label>CPU：</label>
+            <input id="cpu" type="number", max="4", min="1", step="1", value="1">
+            <br>
+
+            <label>記憶體大小(MB)：</label>
+            <input id="memory" type="number", max="4096", min="1024", step="1024", value="1024">
+            <br>
+
+            <label>掛載主機：</label>
+            <input id="node_name" type="text" required>
+            <br>
+
+            <label>儲存空間大小(GB)：</label>
+            <input id="disk_size" type="number", max="50", min="1", step="0.5", value="1">
+            <br>
+        </div>
+        <button onclick="if (confirm('確定要登記嗎?')) register()">登記</button>
+        <a href="management.html">返回</a>
+    </body>
+    <script type="text/javascript" src="islab-api.js"></script>
+</html>
