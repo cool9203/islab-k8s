@@ -8,36 +8,39 @@ if [ ! $# == 1 ]; then
 fi
 
 if [ "$1" = "deploy" ]; then
-  #mkdir ${WORKDIR} -m 777
-  #cd $(pwd)/db
-  ./deploy.sh deploy
+  mkdir ${WORKDIR} -m 777
+  cd $(pwd)/backend
+  ./deploy.sh deploy ${WORKDIR}
+  cd ..
+  cd $(pwd)/db
+  ./deploy.sh deploy ${WORKDIR}
   cd ..
   cd $(pwd)/web
-  ./deploy.sh deploy
+  ./deploy.sh deploy ${WORKDIR}
   cd ..
   cd $(pwd)/sshd
-  ./deploy.sh deploy
-  cd ..
-  cd $(pwd)/GPUMounter
   ./deploy.sh deploy
 
 elif [ "$1" = "redeploy" ]; then
   #rm -r ${WORKDIR}
-  #mkdir ${WORKDIR} -m 777
+  mkdir ${WORKDIR} -m 777
+  cd $(pwd)/backend
+  ./deploy.sh redeploy ${WORKDIR}
+  cd ..
   cd $(pwd)/db
-  ./deploy.sh redeploy
+  ./deploy.sh redeploy ${WORKDIR}
   cd ..
   cd $(pwd)/web
-  ./deploy.sh redeploy
+  ./deploy.sh redeploy ${WORKDIR}
   cd ..
   cd $(pwd)/sshd
-  ./deploy.sh redeploy
-  cd ..
-  cd $(pwd)/GPUMounter
   ./deploy.sh redeploy
 
 elif [ "$1" = "uninstall" ]; then
   #rm -r ${WORKDIR}
+  cd $(pwd)/backend
+  ./deploy.sh uninstall
+  cd ..
   cd $(pwd)/db
   ./deploy.sh uninstall
   cd ..
@@ -45,9 +48,6 @@ elif [ "$1" = "uninstall" ]; then
   ./deploy.sh uninstall
   cd ..
   cd $(pwd)/sshd
-  ./deploy.sh uninstall
-  cd ..
-  cd $(pwd)/GPUMounter
   ./deploy.sh uninstall
 
 else

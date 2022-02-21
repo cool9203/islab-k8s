@@ -8,19 +8,19 @@ spec:
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
   containers:
-  - name: web
-    image: httpd:2.4.52
-    volumeMounts:
-    - mountPath: /usr/local/apache2/htdocs
-      name: web
-    resources:
-      requests:
-        memory: "1024M"
-        cpu: "2"
-    ports:
-      - containerPort: 80
+    - name: web
+      image: httpd:2.4.52
+      volumeMounts:
+        - mountPath: /usr/local/apache2/htdocs
+          name: web
+      resources:
+        requests:
+          memory: "1024M"
+          cpu: "2"
+      ports:
+        - containerPort: 80
   volumes:
     - name: web
       hostPath:
-        path: /home/ubuntu/k8s/islab-k8s/web/html
+        path: "/mnt/k8s-data/islab-httpd/html"
         type: Directory

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: gpu-mounter-workers
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: gpu-mounter-worker
+  template:
+    metadata:
+      labels:
+        app: gpu-mounter-worker
+    spec:
+      serviceAccountName: api-server-base
+      hostPID: true
+      nodeSelector:
+        gpu-mounter-enable: enable
+      containers:
+        - name: gpu-mounter-worker
+          image: yogawulala/gpu-mounter-worker:latest
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 1200
+          command: ["/bin/bash"]
+          args: ["-c", "/GPUMounter/GPUMounter-worker"]
+          env:
+            - name: CGROUP_DRIVER
+              # value: "cgroupfs"
+              value: "systemd"
+            - name: GPU_POOL_NAMESPACE
+              value: "default"
+          volumeMounts:
+            - name: cgroup
+              mountPath: /sys/fs/cgroup
+            - name: device-monitor
+              mountPath: /var/lib/kubelet/pod-resources
+            - name: log-dir
+              mountPath: /var/log/GPUMounter
+      volumes:
+        - name: cgroup
+          hostPath:
+            type: Directory
+            path: /sys/fs/cgroup
+        - name: device-monitor
+          hostPath:
+            type: Directory
+            path: /var/lib/kubelet/pod-resources
+        - name: log-dir
+          hostPath:
+            type: DirectoryOrCreate
+            path: /etc/GPUMounter/log
