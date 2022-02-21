@@ -2,7 +2,6 @@ import kubernetes.client
 from kubernetes.client.rest import ApiException
 from kubernetes import client, config
 import six
-import ipaddress
 
 import logging
 
@@ -15,30 +14,19 @@ class __kubeapi():
         self.v1 = client.CoreV1Api()
         logger.debug("kubeapi init finish")
 
-    def get_all_worker(self, target):
-        return self.get_all_pod(target)
+    def get_all_worker(self, worker_name):
+        all_pod_data = self.get_all_pod()
+        all_worker = dict()
+        for pod_name, data in all_pod_data.items():
+            if (worker_name in pod_name):
+                all_worker[pod_name] = data
+        return all_worker
 
-    def get_all_pod(self, target=""):
+    def get_all_pod(self):
         data = dict()
         ret = self.v1.list_pod_for_all_namespaces(watch=False)
         for pod in ret.items:
-            if (len(target) > 0):
-                if (target in pod.metadata.name):
-                    data[pod.metadata.name] = {"pod_ip":pod.status.pod_ip, "namespace":pod.metadata.namespace}
-            else:
-                data[pod.metadata.name] = {"pod_ip":pod.status.pod_ip, "namespace":pod.metadata.namespace}
-        return data
-
-    def get_all_svc(self, target=""):
-        data = dict()
-        ret = self.list_service_for_all_namespaces(watch=False)
-        for svc in ret.items:
-            logger.info(svc.spec)
-            if (len(target) > 0):
-                if (target in svc.metadata.name):
-                    data[svc.spec.cluster_ip] = svc.metadata.name
-            else:
-                data[svc.spec.cluster_ip] = svc.metadata.name
+            data[pod.metadata.name] = {"pod_ip":pod.status.pod_ip, "namespace":pod.metadata.namespace}
         return data
 
     def __call_api_GET_example(self):

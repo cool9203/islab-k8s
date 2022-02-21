@@ -1,8 +1,7 @@
 from pkg import log
+import os
 
-#load setting and get logger
-setting = log.load_setting("./setting.txt")
-logger = log.get_logger(setting=setting, name="master", logger_name="")
+logger = log.get_logger(log_file_name="master", logger_name="", log_level=os.environ.get("LOG_LEVEL", "INFO"))
 
 from flask import Flask
 from flask_cors import CORS
@@ -16,15 +15,17 @@ def main():
     app.config['CORS_HEADERS'] = "Content-Type"
     app.config['JSON_AS_ASCII'] = False
 
-    ip = setting.get("IP", "0.0.0.0")
-    port = int(setting.get("PORT", 8080))
-    develope = setting.get("DEVELOPE", "false")
-    debug = setting.get("DEBUG", "true")
+    ip = os.environ.get("LISTEN_IP", "0.0.0.0")
+    port = int(os.environ.get("LISTEN_PORT", 8080))
+    develope = os.environ.get("DEVELOPE", "false")
+    debug = os.environ.get("DEBUG", "true")
+    log_level = os.environ.get("LOG_LEVEL", "INFO")
 
-    logger.info(f"ip:{ip}")
-    logger.info(f"port:{port}")
+    logger.info(f"LISTEN_IP:{ip}")
+    logger.info(f"LISTEN_PORT:{port}")
     logger.info(f"develope:{develope}")
     logger.info(f"debug:{debug}")
+    logger.info(f"log_level:{log_level}")
 
     #dynamic load api
     try:

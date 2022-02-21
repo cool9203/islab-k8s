@@ -9,7 +9,7 @@ spec:
   selector:
     matchLabels:
       app: api-server-base-worker
-  template: 
+  template:
     metadata:
       labels:
         app: api-server-base-worker
@@ -17,37 +17,38 @@ spec:
       serviceAccountName: api-server-base
       hostPID: true
       containers:
-      - name: api-server-base-worker
-        image: yogawulala/k8s-api-server-base:latest
-        imagePullPolicy: Always
-        securityContext:
-          privileged: true
-        ports:
-          - containerPort: 8080
-        resources:
-          requests:
-            cpu: "2"
-            memory: "1024M"
-        command: ["python"]
-        args: ["/main.py"]
-        volumeMounts:
-          - name: log-dir
-            mountPath: /log
-          - name: setting-file
-            mountPath: /setting.txt
-          - name: program-file
-            mountPath: /main.py
-          - name: pkg-dir
-            mountPath: /pkg
+        - name: api-server-base-worker
+          image: yogawulala/k8s-api-server-base:latest
+          imagePullPolicy: Always
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              cpu: "2"
+              memory: "1024M"
+          command: ["python"]
+          args: ["/main.py"]
+          env:
+            - name: LISTEN_IP
+              value: "0.0.0.0"
+            - name: LISTEN_PORT
+              value: "8080"
+            - name: LOG_LEVEL
+              value: "INFO"
+          volumeMounts:
+            - name: log-dir
+              mountPath: /log
+            - name: program-file
+              mountPath: /main.py
+            - name: pkg-dir
+              mountPath: /pkg
       volumes:
         - name: log-dir
           hostPath:
             type: DirectoryOrCreate
             path: /etc/api-server-base/log
-        - name: setting-file
-          hostPath:
-            type: File
-            path: /etc/api-server-base/setting.txt
         - name: program-file
           hostPath:
             type: File
@@ -56,4 +57,3 @@ spec:
           hostPath:
             type: Directory
             path: /etc/api-server-base/pkg
-

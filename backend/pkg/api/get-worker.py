@@ -3,19 +3,22 @@ from flask import Flask, jsonify
 from flask.views import MethodView
 import pkg.kubeapi
 import pkg.log
+import pkg.dbapi
 import logging
+import yaml
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 kubeapi = pkg.kubeapi.__kubeapi()
-setting = pkg.log.load_setting("./setting.txt")
 
+worker_name = pkg.dbapi.get_worker_name()
 
 class get_worker(MethodView):
     def get(self, method):
         if (not method in ["GET"]):
             return jsonify({"status":"unsuccess"})
         try:
-            return jsonify({"status":"success", "data":kubeapi.get_all_worker(setting["WORKER_NAME"])})
+            return jsonify({"status":"success", "data":kubeapi.get_all_worker(worker_name)})
         except Exception as e:
             return jsonify({"status":"success"})
         

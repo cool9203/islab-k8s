@@ -7,12 +7,9 @@ using_api_name_list = ["test", "get-worker", "test-worker"]
 
 api_list = list()
 for api_name in using_api_name_list:
-    try:
-        api = importlib.import_module(f"pkg.api.{api_name}")
-        logger.info(f"load api : {api.__name__}")
-        api_list.append(api)
-    except Exception as e:
-        logger.error(e)
+    api = importlib.import_module(f"pkg.api.{api_name}")
+    logger.info(f"load api : {api.__name__}")
+    api_list.append(api)
 
 
 def add_url_rule(app):
