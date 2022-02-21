@@ -63,3 +63,7 @@ spec:
           hostPath:
             type: Directory
             path: /etc/api-server-base/deploy
+        - name: data-dir
+          hostPath:
+            type: Directory
+            path: /etc/api-server-base/data

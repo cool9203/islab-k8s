@@ -1,7 +1,6 @@
 import yaml
 import logging
 from pathlib import Path
-import os
 
 log_path = "./log"
 log_fmt = "%(asctime)s %(levelname)s %(pathname)s.%(lineno)d %(message)s"
