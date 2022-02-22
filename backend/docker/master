@@ -1,0 +1,11 @@
+FROM python:3.8 as build-env
+WORKDIR app
+COPY ./requirements.txt ./
+RUN pip install -r requirements.txt
+
+COPY ./src/master/main.py ./main.py
+COPY ./pkg ./pkg
+
+RUN pyinstaller -p pkg -p pkg/api --hidden-import pkg --hidden-import pkg.api -F ./main.py
+
+CMD ["/bin/bash"]

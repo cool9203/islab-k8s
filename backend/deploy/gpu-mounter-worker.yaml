@@ -51,4 +51,4 @@ spec:
         - name: log-dir
           hostPath:
             type: DirectoryOrCreate
-            path: /etc/GPUMounter/log
+            path: /mnt/k8s-data/islab-backend/log

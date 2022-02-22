@@ -29,7 +29,7 @@ spec:
               cpu: "2"
               memory: "1024M"
           command: ["python"]
-          args: ["/main.py"]
+          args: ["/app/main.py"]
           env:
             - name: LISTEN_IP
               value: "0.0.0.0"
@@ -40,20 +40,20 @@ spec:
           volumeMounts:
             - name: log-dir
               mountPath: /log
-            - name: program-file
-              mountPath: /main.py
-            - name: pkg-dir
-              mountPath: /pkg
+            - name: main-file
+              mountPath: /app/main.py
+            - name: program-dir
+              mountPath: /app
       volumes:
         - name: log-dir
           hostPath:
             type: DirectoryOrCreate
-            path: /etc/api-server-base/log
-        - name: program-file
+            path: /mnt/k8s-data/islab-backend/log
+        - name: main-file
           hostPath:
             type: File
-            path: /etc/api-server-base/src/worker/main.py
-        - name: pkg-dir
+            path: /mnt/k8s-data/islab-backend/src/worker/main.py
+        - name: program-dir
           hostPath:
             type: Directory
-            path: /etc/api-server-base/pkg
+            path: /mnt/k8s-data/islab-backend

@@ -9,7 +9,7 @@ RUN apt-get update
 RUN apt-get install -y openssh-server
 RUN apt-get install -y python3.6 python3-pip python3-dev
 
-RUN echo 'root:${PASSWORD}' | chpasswd
+RUN echo "root:${PASSWORD}" | chpasswd
 
 RUN mkdir /var/run/sshd
 
