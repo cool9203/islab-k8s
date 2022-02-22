@@ -5,22 +5,15 @@ if [[ ($# == 0)  ||  ("$1" != "uninstall" && $# < 2) ]] ; then
   exit
 fi
 
-K8S_DATA_DIR=/mnt/k8s-data/islab-backend
-#K8S_DATA_DIR=$2/islab-backend
+K8S_DATA_DIR=$2/islab-backend
 
 if [ "$1" = "deploy" ] || [ "$1" = "redeploy" ]; then
   yq -i ".spec.template.spec.volumes[0].hostPath.path = \"${K8S_DATA_DIR}/log\"" deploy/master.yaml
-  yq -i ".spec.template.spec.volumes[1].hostPath.path = \"${K8S_DATA_DIR}/src/master/main.py\"" deploy/master.yaml
-  yq -i ".spec.template.spec.volumes[2].hostPath.path = \"${K8S_DATA_DIR}\"" deploy/master.yaml
-
+  yq -i ".spec.template.spec.volumes[1].hostPath.path = \"${K8S_DATA_DIR}/deploy\"" deploy/master.yaml
+  yq -i ".spec.template.spec.volumes[2].hostPath.path = \"${K8S_DATA_DIR}/data\"" deploy/master.yaml
   yq -i ".spec.template.spec.volumes[0].hostPath.path = \"${K8S_DATA_DIR}/log\"" deploy/worker.yaml
-  yq -i ".spec.template.spec.volumes[1].hostPath.path = \"${K8S_DATA_DIR}/src/worker/main.py\"" deploy/worker.yaml
-  yq -i ".spec.template.spec.volumes[2].hostPath.path = \"${K8S_DATA_DIR}\"" deploy/worker.yaml
-
   yq -i ".spec.template.spec.volumes[0].hostPath.path = \"${K8S_DATA_DIR}/log\"" deploy/gpu-mounter-master.yaml
   yq -i ".spec.template.spec.volumes[2].hostPath.path = \"${K8S_DATA_DIR}/log\"" deploy/gpu-mounter-worker.yaml
-
-  sudo cp -r ./ ${K8S_DATA_DIR}
 fi
 
 if [ "$1" = "deploy" ]; then

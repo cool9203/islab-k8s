@@ -10,9 +10,12 @@ logger = logging.getLogger("master.kubeapi")
 
 class __kubeapi():
     def __init__(self):
-        config.load_incluster_config()
-        self.v1 = client.CoreV1Api()
-        logger.debug("kubeapi init finish")
+        try:
+            config.load_incluster_config()
+            self.v1 = client.CoreV1Api()
+            logger.debug("kubeapi init finish")
+        except Exception as e:
+            logger.error(e)
 
     def get_all_worker(self, worker_name):
         all_pod_data = self.get_all_pod()

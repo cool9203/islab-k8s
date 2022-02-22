@@ -18,14 +18,14 @@ spec:
       serviceAccountName: api-server-base
       containers:
         - name: api-server-base-master
-          image: yogawulala/k8s-api-server-base:latest
-          imagePullPolicy: Always
+          image: yogawulala/k8s-api-server-master:latest
+          imagePullPolicy: Never #Always
           resources:
             requests:
               cpu: "2"
               memory: "1024M"
-          command: ["python"]
-          args: ["/app/main.py"]
+          command: ["/bin/bash"]
+          args: ["-c", "/app/main"]
           env:
             - name: LISTEN_IP
               value: "0.0.0.0"
@@ -39,21 +39,21 @@ spec:
               value: "INFO"
           volumeMounts:
             - name: log-dir
-              mountPath: /log
-            - name: main-file
-              mountPath: /app/main.py
-            - name: program-dir
-              mountPath: /app
+              mountPath: /app/log
+            - name: deploy-dir
+              mountPath: /app/deploy
+            - name: data-dir
+              mountPath: /app/data
       volumes:
         - name: log-dir
           hostPath:
             type: DirectoryOrCreate
             path: /mnt/k8s-data/islab-backend/log
-        - name: main-file
-          hostPath:
-            type: File
-            path: /mnt/k8s-data/islab-backend/src/master/main.py
-        - name: program-dir
+        - name: deploy-dir
           hostPath:
             type: Directory
-            path: /mnt/k8s-data/islab-backend
+            path: /mnt/k8s-data/islab-backend/deploy
+        - name: data-dir
+          hostPath:
+            type: Directory
+            path: /mnt/k8s-data/islab-backend/data

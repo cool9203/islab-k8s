@@ -3,9 +3,13 @@ WORKDIR app
 COPY ./requirements.txt ./
 RUN pip install -r requirements.txt
 
-COPY ./src/master/main.py ./main.py
+COPY ./src/worker/main.py ./main.py
 COPY ./pkg ./pkg
 
-RUN pyinstaller -p pkg -p pkg/api --hidden-import pkg --hidden-import pkg.api -F ./main.py
+RUN pyinstaller -F ./main.py
+
+FROM ubuntu:20.04
+WORKDIR app
+COPY --from=build-env /app/dist/main ./main
 
 CMD ["/bin/bash"]

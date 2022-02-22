@@ -18,8 +18,8 @@ spec:
       hostPID: true
       containers:
         - name: api-server-base-worker
-          image: yogawulala/k8s-api-server-base:latest
-          imagePullPolicy: Always
+          image: yogawulala/k8s-api-server-worker:latest
+          imagePullPolicy: Never #Always
           securityContext:
             privileged: true
           ports:
@@ -28,8 +28,8 @@ spec:
             requests:
               cpu: "2"
               memory: "1024M"
-          command: ["python"]
-          args: ["/app/main.py"]
+          command: ["/bin/bash"]
+          args: ["-c", "/app/main"]
           env:
             - name: LISTEN_IP
               value: "0.0.0.0"
@@ -39,21 +39,9 @@ spec:
               value: "INFO"
           volumeMounts:
             - name: log-dir
-              mountPath: /log
-            - name: main-file
-              mountPath: /app/main.py
-            - name: program-dir
-              mountPath: /app
+              mountPath: /app/log
       volumes:
         - name: log-dir
           hostPath:
             type: DirectoryOrCreate
             path: /mnt/k8s-data/islab-backend/log
-        - name: main-file
-          hostPath:
-            type: File
-            path: /mnt/k8s-data/islab-backend/src/worker/main.py
-        - name: program-dir
-          hostPath:
-            type: Directory
-            path: /mnt/k8s-data/islab-backend

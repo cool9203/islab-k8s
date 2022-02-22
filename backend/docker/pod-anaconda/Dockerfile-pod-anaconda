@@ -8,7 +8,7 @@ MAINTAINER yoga
 RUN apt-get update
 RUN apt-get install -y openssh-server
 
-RUN echo 'root:${PASSWORD}' | chpasswd
+RUN echo "root:${PASSWORD}" | chpasswd
 
 RUN mkdir /var/run/sshd
 
