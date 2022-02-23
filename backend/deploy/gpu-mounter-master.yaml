@@ -15,7 +15,7 @@ spec:
       labels:
         app: gpu-mounter-master
     spec:
-      serviceAccountName: api-server-base
+      serviceAccountName: islab-k8s
       containers:
         - name: gpu-mounter-master-container
           image: pokerfacesad/gpu-mounter-master:latest
@@ -29,6 +29,6 @@ spec:
         - name: log-dir
           hostPath:
             type: DirectoryOrCreate
-            path: /mnt/k8s-data/islab-backend/log
+            path: /etc/islab-k8s/backend/log
 #      nodeSelector:
 #        kubernetes.io/hostname: $master-hostname

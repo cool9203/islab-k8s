@@ -1,43 +1,50 @@
 #!/usr/bin/env bash
 
-WORKDIR=/mnt/k8s-data
+WORKDIR=/etc/islab-k8s
+K8S_DATA_DIR=/mnt/k8s-data
 
 if [ ! $# == 1 ]; then
   echo "Invalid parameter (must be \"deploy\", \"redeploy\" or \"uninstall\")"
   exit
 fi
 
+# check and create WORKDIR
+if [ ! -d ${WORKDIR} ]; then
+  sudo mkdir ${WORKDIR}
+fi
+
+# check and create WORKDIR
+if [ ! -d ${K8S_DATA_DIR} ]; then
+  sudo mkdir ${K8S_DATA_DIR} -m 777
+fi
+
 if [ "$1" = "deploy" ]; then
-  mkdir ${WORKDIR} -m 777
   cd $(pwd)/backend
-  ./deploy.sh deploy ${WORKDIR}
+  ./deploy.sh deploy
   cd ..
   cd $(pwd)/db
-  ./deploy.sh deploy ${WORKDIR}
+  ./deploy.sh deploy ${K8S_DATA_DIR}
   cd ..
   cd $(pwd)/web
-  ./deploy.sh deploy ${WORKDIR}
+  ./deploy.sh deploy
   cd ..
   cd $(pwd)/sshd
   ./deploy.sh deploy
 
 elif [ "$1" = "redeploy" ]; then
-  #rm -r ${WORKDIR}
-  mkdir ${WORKDIR} -m 777
   cd $(pwd)/backend
-  ./deploy.sh redeploy ${WORKDIR}
+  ./deploy.sh redeploy
   cd ..
   cd $(pwd)/db
-  ./deploy.sh redeploy ${WORKDIR}
+  ./deploy.sh redeploy ${K8S_DATA_DIR}
   cd ..
   cd $(pwd)/web
-  ./deploy.sh redeploy ${WORKDIR}
+  ./deploy.sh redeploy
   cd ..
   cd $(pwd)/sshd
   ./deploy.sh redeploy
 
 elif [ "$1" = "uninstall" ]; then
-  #rm -r ${WORKDIR}
   cd $(pwd)/backend
   ./deploy.sh uninstall
   cd ..

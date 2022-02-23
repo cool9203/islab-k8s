@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: api-server-base-worker
+  name: islab-k8s-worker
   namespace: kube-system
   labels:
-    app: api-server-base-worker
+    app: islab-k8s-worker
 spec:
   selector:
     matchLabels:
-      app: api-server-base-worker
+      app: islab-k8s-worker
   template:
     metadata:
       labels:
-        app: api-server-base-worker
+        app: islab-k8s-worker
     spec:
-      serviceAccountName: api-server-base
+      serviceAccountName: islab-k8s
       hostPID: true
       containers:
-        - name: api-server-base-worker
+        - name: islab-k8s-worker
           image: yogawulala/k8s-api-server-worker:latest
           imagePullPolicy: Never #Always
           securityContext:
@@ -44,4 +44,4 @@ spec:
         - name: log-dir
           hostPath:
             type: DirectoryOrCreate
-            path: /mnt/k8s-data/islab-backend/log
+            path: /etc/islab-k8s/backend/log

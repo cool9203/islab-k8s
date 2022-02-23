@@ -38,5 +38,5 @@ class __template(MethodView):
         
 
 def add_url_rule(app):
-    _api = __template.as_view(f'template')
-    app.add_url_rule(f'/template/<method>', view_func=_api, methods=["POST", "GET"])
+    api = __template.as_view(f'template')
+    app.add_url_rule(f'/template/<method>', view_func=api, methods=["POST", "GET"])

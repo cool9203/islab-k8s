@@ -28,7 +28,6 @@ jobs:
       - name: build image
         run: | 
           cd backend
-          ls
           docker build . -f docker/master/Dockerfile -t $DOCKERHUB_USER/$BASE_IMAGE_NAME-master
           docker build . -f docker/worker/Dockerfile -t $DOCKERHUB_USER/$BASE_IMAGE_NAME-worker
 

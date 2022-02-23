@@ -1,20 +1,18 @@
 #!/usr/bin/env bash
 
-if [[ ($# == 0)  ||  ("$1" != "uninstall" && $# < 2) ]] ; then
-  echo "./deploy [deploy | redeploy [K8S_DATA_DIR]] | [uninstall]"
+if [ ! $# == 1 ]; then
+  echo "./deploy.sh [deploy | redeploy | uninstall]"
   exit
 fi
 
-K8S_DATA_DIR=$2/islab-backend
+WORKDIR=/etc/islab-k8s/backend
 
-if [ "$1" = "deploy" ] || [ "$1" = "redeploy" ]; then
-  yq -i ".spec.template.spec.volumes[0].hostPath.path = \"${K8S_DATA_DIR}/log\"" deploy/master.yaml
-  yq -i ".spec.template.spec.volumes[1].hostPath.path = \"${K8S_DATA_DIR}/deploy\"" deploy/master.yaml
-  yq -i ".spec.template.spec.volumes[2].hostPath.path = \"${K8S_DATA_DIR}/data\"" deploy/master.yaml
-  yq -i ".spec.template.spec.volumes[0].hostPath.path = \"${K8S_DATA_DIR}/log\"" deploy/worker.yaml
-  yq -i ".spec.template.spec.volumes[0].hostPath.path = \"${K8S_DATA_DIR}/log\"" deploy/gpu-mounter-master.yaml
-  yq -i ".spec.template.spec.volumes[2].hostPath.path = \"${K8S_DATA_DIR}/log\"" deploy/gpu-mounter-worker.yaml
+# check and create WORKDIR
+if [ ! -d ${WORKDIR} ]; then
+  mkdir ${WORKDIR}
 fi
+
+sudo cp -r ./deploy ./data ${WORKDIR}
 
 if [ "$1" = "deploy" ]; then
   kubectl apply -f deploy/service-account.yaml
@@ -52,5 +50,5 @@ elif [ "$1" = "uninstall" ]; then
   kubectl delete -f deploy/gpu-mounter-worker.yaml
 
 else
-  echo "./deploy [deploy | redeploy [K8S_DATA_DIR]] | [uninstall]"
+  echo "./deploy.sh [deploy | redeploy | uninstall]"
 fi

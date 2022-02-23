@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-server-base-master
+  name: islab-k8s-master
   namespace: kube-system
   labels:
-    app: api-server-base-master
+    app: islab-k8s-master
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: api-server-base-master
+      app: islab-k8s-master
   template:
     metadata:
       labels:
-        app: api-server-base-master
+        app: islab-k8s-master
     spec:
-      serviceAccountName: api-server-base
+      serviceAccountName: islab-k8s
       containers:
-        - name: api-server-base-master
+        - name: islab-k8s-master
           image: yogawulala/k8s-api-server-master:latest
           imagePullPolicy: Never #Always
           resources:
@@ -48,12 +48,12 @@ spec:
         - name: log-dir
           hostPath:
             type: DirectoryOrCreate
-            path: /mnt/k8s-data/islab-backend/log
+            path: /etc/islab-k8s/backend/log
         - name: deploy-dir
           hostPath:
             type: Directory
-            path: /mnt/k8s-data/islab-backend/deploy
+            path: /etc/islab-k8s/backend/deploy
         - name: data-dir
           hostPath:
             type: Directory
-            path: /mnt/k8s-data/islab-backend/data
+            path: /etc/islab-k8s/backend/data

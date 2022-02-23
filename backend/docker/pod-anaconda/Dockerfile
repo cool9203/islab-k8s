@@ -1,9 +1,10 @@
 ARG CUDA_VERSION
-ARG UBUNTU_VERSION:18.04
-ARG PASSWORD
+ARG UBUNTU_VERSION
 
 FROM nvidia/cuda:${CUDA_VERSION}-base-ubuntu${UBUNTU_VERSION}
 MAINTAINER yoga
+
+ARG PASSWORD
 
 RUN apt-get update
 RUN apt-get install -y openssh-server

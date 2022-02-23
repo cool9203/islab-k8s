@@ -22,5 +22,5 @@ spec:
   volumes:
     - name: web
       hostPath:
-        path: "/mnt/k8s-data/islab-httpd/html"
+        path: "/etc/islab-k8s/httpd/html"
         type: Directory
