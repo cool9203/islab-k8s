@@ -1,36 +1,97 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 import kubernetes.client
 from kubernetes.client.rest import ApiException
+from kubernetes.client.api_client import ApiClient
 from kubernetes import client, config
 import six
 
-import logging
 
-logger = logging.getLogger("master.kubeapi")
-
-
-class __kubeapi():
+class _kubeapi():
     def __init__(self):
         try:
             config.load_incluster_config()
-            self.v1 = client.CoreV1Api()
-            logger.debug("kubeapi init finish")
         except Exception as e:
-            logger.error(e)
+            config.load_kube_config()
+        self.v1 = client.CoreV1Api()
+        self.api_client = ApiClient()
+        logger.debug("kubeapi init finish")
 
     def get_all_worker(self, worker_name):
-        all_pod_data = self.get_all_pod()
-        all_worker = dict()
-        for pod_name, data in all_pod_data.items():
-            if (worker_name in pod_name):
-                all_worker[pod_name] = data
-        return all_worker
+        return self.get_all_pod(worker_name)
 
-    def get_all_pod(self):
+    def get_all_pod(self, target=""):
         data = dict()
         ret = self.v1.list_pod_for_all_namespaces(watch=False)
         for pod in ret.items:
-            data[pod.metadata.name] = {"pod_ip":pod.status.pod_ip, "namespace":pod.metadata.namespace}
+            if (len(target) > 0):
+                if (target in pod.metadata.name):
+                    data[pod.metadata.name] = {"pod_ip":pod.status.pod_ip, "namespace":pod.metadata.namespace, "node_name":pod.spec.node_name, "status":pod.status.phase}
+            else:
+                data[pod.metadata.name] = {"pod_ip":pod.status.pod_ip, "namespace":pod.metadata.namespace, "node_name":pod.spec.node_name, "status":pod.status.phase}
         return data
+
+    def get_all_svc(self, target=""):
+        data = dict()
+        ret = self.v1.list_service_for_all_namespaces(watch=False)
+        for svc in ret.items:
+            if (len(target) > 0):
+                if (target in svc.metadata.name):
+                    data[svc.spec.cluster_ip] = {"name":svc.metadata.name, "namespace":svc.metadata.namespace, "ports":svc.spec.ports}
+            else:
+                data[svc.spec.cluster_ip] = {"name":svc.metadata.name, "namespace":svc.metadata.namespace, "ports":svc.spec.ports}
+        return data
+
+    def get_all_node(self, target=""):
+        data = dict()
+        ret = self.v1.list_node()
+        for node in ret.items:
+            gpu = node.status.capacity.get("nvidia.com/gpu")
+            cpu_capacity = node.status.capacity["cpu"]
+            cpu_allocatable = node.status.allocatable["cpu"]
+            mem_capacity = node.status.capacity["memory"]
+            mem_allocatable = node.status.allocatable["memory"]
+            if (len(target) > 0):
+                if (target in svc.metadata.name):
+                    data[node.metadata.name] = {"gpu":gpu, "cpu_capacity":cpu_capacity, "cpu_allocatable":cpu_allocatable, "mem_capacity":mem_capacity, "mem_allocatable":mem_allocatable}
+            else:
+                data[node.metadata.name] = {"gpu":gpu, "cpu_capacity":cpu_capacity, "cpu_allocatable":cpu_allocatable, "mem_capacity":mem_capacity, "mem_allocatable":mem_allocatable}
+        return data
+
+    def mount_gpu_to_pod(self, pod_name, gpu_num=1, namespace="default"):
+        ret = self.v1.connect_get_namespaced_service_proxy_with_path("gpu-mounter-service", "kube-system", f"addgpu/namespace/{namespace}/pod/{pod_name}/gpu/{gpu_num}/isEntireMount/false")
+        logger.debug(f"{ret}")
+        if ("Success" in ret):
+            return True
+        return False
+
+    def remove_gpu_to_pod(self, pod_name, gpu_uuid=None, namespace="default", **kwargs):
+        if (gpu_uuid is None):
+            gpu_uuid = self.get_pod_mount_gpu_uuid(pod_name)
+
+        if (len(gpu_uuid) == 0):
+            return True
+
+        logger.debug("uuid:{gpu_uuid}")
+        form_params = list()
+        for uuid in gpu_uuid:
+            form_params.append(("uuids", uuid))
+        ret = self.__call_api(
+            name="gpu-mounter-service",
+            namespace="kube-system",
+            path=f"removegpu/namespace/{namespace}/pod/{pod_name}/force/1",
+            header={"Content-Type": "application/x-www-form-urlencoded"},
+            method="POST",
+            form=form_params,
+            path2=None)
+
+        logger.debug(ret)
+
+        if ("Success" in str(ret)):
+            return True
+        return False
 
     def __call_api_GET_example(self):
         ret = self.v1.connect_get_namespaced_service_proxy_with_path("your_service_name", "kube-system", f"service_rul")
@@ -141,3 +202,16 @@ class __kubeapi():
             _preload_content=local_var_params.get('_preload_content', True),
             _request_timeout=local_var_params.get('_request_timeout'),
             collection_formats=collection_formats)
+
+    def _apply(self, file_path):
+        os.system(f"kubectl apply -f {file_path}")
+
+    def _delete(self, type_name, name):
+        os.system(f"kubectl delete {type_name} {name}")
+
+def main():
+    kubeapi = _kubeapi()
+
+
+if (__name__ == "__main__"):
+    main()
