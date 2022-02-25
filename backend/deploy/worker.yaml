@@ -40,8 +40,14 @@ spec:
           volumeMounts:
             - name: log-dir
               mountPath: /app/log
+            - name: pv-storage-dir
+              mountPath: /app/pv-storage
       volumes:
         - name: log-dir
           hostPath:
             type: DirectoryOrCreate
             path: /etc/islab-k8s/backend/log
+        - name: pv-storage-dir
+          hostPath:
+            type: DirectoryOrCreate
+            path: /mnt/k8s-data
