@@ -3,6 +3,8 @@ from pathlib import Path
 import pymysql.cursors
 import pkg.kubeapi
 import pkg.secret
+import ipaddress
+import re
 
 
 def get_worker_name():
@@ -117,59 +119,69 @@ class _db(object):
 
 class _yaml(object):
     def __init__(self):
-        self.default_docker_image = "islab-nvidia-docker-ssh-anaconda"
+        self.default_docker_image = {"anaconda":"islab-nvidia-docker-ssh-anaconda", "base":"islab-nvidia-docker-ssh"}
+        self.pv_path = "/mnt/k8s-data"
 
     def __get_name(self, name):
         all_name = self.get_all_name()
-        key = secret.get_hash(name)[:8]
+        print(all_name)
+        key = pkg.secret.get_hash(name)[:8]
         while (f"{name}{key}" in all_name):
             key = secret.get_hash(name)[:8]
         return f"{name}{key}"
 
-    def create_yaml(self, name, cpu, memory, node_name, disk_size):
-        config = self.load_config(name)
+    def get_all_name(self):
+        name_list = list()
+        for element in Path("./data/yaml").iterdir():
+            name_list.append(element.name)
+        return name_list
 
+    def __get_idle_ip(self, start_ip="10.100.0.0"):
+        all_ip = sorted(kubeapi.get_all_svc().keys())
+        ipa = ipaddress.ip_address(start_ip)
+        ipn = ipaddress.ip_network(f"{start_ip}/16")
+        for ip in ipn.hosts():
+            if (not ip in all_ip):
+                return str(ip)
+        return self.__get_idle_ip(str(ipa + ipn.num_addresses))
+
+    def create_yaml(self, name, cpu, memory, node_name, disk_size, use_anaconda):
         name = self.__get_name(name)
+        image = self.default_docker_image["anaconda"] if use_anaconda is True else self.default_docker_image["base"]
 
-        self.create_pvc_yaml(str(Path(path)), name, disk_size)
-        self.create_pv_yaml(str(Path(path)), name, disk_size, str(Path(self.pv_path, name)), node_name)
-        self.create_pod_yaml(str(Path(path)), name, cpu, memory, node_name, self.docker_image)
-        self.create_service_yaml(str(Path(path)), name)
+        #this path is cp only use, so can create.
+        path = Path(f"./data/yaml/{name}")
+        path.mkdir(exist_ok=True)
 
-        config[name] = {
-            "cpu": cpu,
-            "memory": memory,
-            "disk_size": disk_size,
-            "mount_node": node_name
-        }
-        self.save_config(config, name)
-        logger.info(f"create pod,svc,pv,pvc yaml success")
-        logger.debug(f"data : {config}")
+        self.create_pvc_yaml(path, name, disk_size)
+        self.create_pv_yaml(path, name, disk_size, str(Path(self.pv_path, name)), node_name)
+        self.create_pod_yaml(path, name, cpu, memory, image)
+        self.create_service_yaml(path, name)
         return name
 
     def create_pvc_yaml(self, file_name, name, size):
-        self.load_template_and_replace(str(Path(DATA_PATH, "template-pvc.yaml")), Path(file_name, "pvc.yaml"),
+        self.load_template_and_replace(Path("./data", "template-pvc.yaml"), Path(file_name, "pvc.yaml"),
             name=name,
             size=size)
 
     def create_pv_yaml(self, file_name, name, size, path, node_name):
-        self.load_template_and_replace(str(Path(DATA_PATH, "template-pv.yaml")), Path(file_name, "pv.yaml"),
+        self.load_template_and_replace(Path("./data", "template-pv.yaml"), Path(file_name, "pv.yaml"),
             name=name,
             size=size,
             path=path,
             node_name=node_name)
 
     def create_service_yaml(self, file_name, name):
-        self.load_template_and_replace(str(Path(DATA_PATH, "template-svc.yaml")), Path(file_name, "svc.yaml"),
+        ip = self.__get_idle_ip()
+        self.load_template_and_replace(Path("./data", "template-svc.yaml"), Path(file_name, "svc.yaml"),
             name=name,
             ip=ip)
 
-    def create_pod_yaml(self, file_name, name, cpu, memory, node_name, image):
-        self.load_template_and_replace(str(Path(DATA_PATH, "template-pod.yaml")), Path(file_name, "pod.yaml"),
+    def create_pod_yaml(self, file_name, name, cpu, memory, image):
+        self.load_template_and_replace(Path("./data", "template-pod.yaml"), Path(file_name, "pod.yaml"),
             name=name,
             cpu=cpu,
             memory=memory,
-            node_name=node_name,
             image=image)
 
     def load_template_and_replace(self, template_name, save_path, **kwargs):
@@ -196,10 +208,6 @@ class _yaml(object):
         else:
             logger.info(f"edit pod {name} failed")
             raise Exception("name not have")
-
-    def edit_svc_yaml(self, name, ports=dict()):
-        logger.info(f"edit svc {name}")
-        logger.debug(f"data : {ports}")
 
     def remove_yaml(self, name):
         path = Path(DATA_PATH, self.save_path, name)

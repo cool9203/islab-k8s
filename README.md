@@ -14,7 +14,6 @@ git clone https://github.com/cool9203/islab-k8s.git
 mkdir k8s && cd k8s
 git clone https://github.com/cool9203/islab-k8s.git
 ./deploy.sh client
-``````
 ```
 
 ## used submoudle

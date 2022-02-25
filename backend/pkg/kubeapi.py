@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 import kubernetes.client
 from kubernetes.client.rest import ApiException
 from kubernetes.client.api_client import ApiClient
-from kubernetes import client, config
+from kubernetes import client, config, utils
 import six
 
 
@@ -204,7 +204,7 @@ class _kubeapi():
             collection_formats=collection_formats)
 
     def _apply(self, file_path):
-        pass
+        utils.create_from_yaml(self.api_client, file_path)
 
-    def _delete(self, type_name, name):
-        pass
+    def _delete_pod(self, name, namespace="default"):
+        return self.v1.delete_namespaced_pod(name, namespace)
