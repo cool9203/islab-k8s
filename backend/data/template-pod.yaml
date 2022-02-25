@@ -30,5 +30,5 @@ spec:
         claimName: {name}
     - name: islab-gpu-package
       hostPath:
-        path: {gpu_package_path}
+        path: /etc/islab-k8s/client
         type: Directory

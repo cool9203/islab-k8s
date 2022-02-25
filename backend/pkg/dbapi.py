@@ -1,5 +1,9 @@
 import yaml
 from pathlib import Path
+import pymysql.cursors
+import pkg.kubeapi
+import pkg.secret
+
 
 def get_worker_name():
     with Path("./deploy/worker.yaml").open("r") as f:
@@ -7,55 +11,113 @@ def get_worker_name():
         worker_name = worker_yaml["metadata"]["name"]
     return worker_name
 
+
 def get_worker_port():
     with Path("./deploy/worker.yaml").open("r") as f:
         worker_yaml = yaml.load(f, Loader=yaml.FullLoader)
         worker_port = worker_yaml["spec"]["template"]["spec"]["containers"][0]["ports"][0]["containerPort"]
     return worker_port
 
+
+def __get_action_last_uid():
+    ret = db.select("select count(*) from log")
+    return ret[0]["count(*)"]
+
+
+def add_log(config):
+    try:
+        action_uid = __get_action_last_uid()
+        name = config["name"]
+        status = config["status"]
+        start_time = config.get("start_time", "")
+        end_time = config.get("end_time", "")
+        db.command(f"INSERT INTO log VALUES ('{action_uid}', '{name}', '{status}', '{start_time}', '{end_time}')")
+        return True
+    except Exception as e:
+        return False
+
+
+def uid_remove(uid):
+    try:
+        db.command(f"DELETE FROM account WHERE `uid` = '{uid}' AND `permission` != 0")
+        return True
+    except Exception as e:
+        return False
+
+
+def login(uid, password):
+    try:
+        ret = db.select(f"SELECT * FROM account WHERE `uid` = '{uid}'")
+        if (len(ret) == 0):
+            return "uid error"
+        if (password == ret[0]["password"]):
+            return "success"
+        else:
+            return "password error"
+    except Exception as e:
+        return "error"
+
+
+def register(uid, password, name):
+    try:
+        db.command(f"INSERT INTO account VALUES ('{uid}', '{password}', '{name}', 4)")
+        return True
+    except Exception as e:
+        return False
+
+
 class _db(object):
     def __init__(self, **kwargs):
-        all_params = ["host", "port", "user", "passwd", "database"]
+        all_params = ["host", "port", "user", "password", "database"]
         local_params = locals()["kwargs"]
         params = dict()
         
-        for key in all_params:
-            if (not key in params):
+        for key in local_params.keys():
+            if (not key in all_params):
                 raise Exception(f"input arg key of '{key}' error.")
         params = local_params
         
-        self.conn = connection=pymysql.connect(host=params["host"],
-                                                port=params["port"],
-                                                user=params["user"],
-                                                password=params["passwd"],
-                                                database=params["database"],
+        self.host = params["host"]
+        self.port = params["port"]
+        self.user = params["user"]
+        self.password = params["password"]
+        self.database = params["database"]
+
+        self.connect()
+
+    def connect(self):
+        self.conn = connection=pymysql.connect(host=self.host,
+                                                port=self.port,
+                                                user=self.user,
+                                                password=self.password,
+                                                database=self.database,
                                                 cursorclass=pymysql.cursors.DictCursor)
-        conn_status = False
-        with conn:
-            conn_status = True
-        if (not conn_status):
-            raise Exception("db connection failed")
+
+    def is_connect(self):
+        try:
+            self.conn.ping(reconnect=True)
+        except:
+            self.connect()
 
     def command(self, sql):
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(sql)
-            conn.commit()
+        self.is_connect()
+        with self.conn.cursor() as cursor:
+            cursor.execute(sql)
+        self.conn.commit()
+        self.conn.close()
 
     def select(self, sql):
-        with conn:
-            with conn.cursor() as cursor:
-                cursor.execute(sql)
-                result = cursor.fetchall()
+        self.is_connect()
+        with self.conn.cursor() as cursor:
+            cursor.execute(sql)
+            result = cursor.fetchall()
+        self.conn.close()
         return result
-
-    def create_table(self, table_name):
-        pass
 
 
 class _yaml(object):
     def __init__(self):
-        self.docker_image = "islab-nvidia-docker-ssh-anaconda"
+        self.default_docker_image = "islab-nvidia-docker-ssh-anaconda"
 
     def __get_name(self, name):
         all_name = self.get_all_name()
@@ -63,14 +125,6 @@ class _yaml(object):
         while (f"{name}{key}" in all_name):
             key = secret.get_hash(name)[:8]
         return f"{name}{key}"
-
-    def get_name_file_path(self, name):
-        all_name = self.get_all_name()
-        if (name in all_name):
-            return str(Path(DATA_PATH, self.save_path, name).resolve())
-        else:
-            logger.error(f"{name} not have")
-            raise Exception(f"not have name. your name is {{{name}}}")
 
     def create_yaml(self, name, cpu, memory, node_name, disk_size):
         config = self.load_config(name)
@@ -105,14 +159,7 @@ class _yaml(object):
             path=path,
             node_name=node_name)
 
-    def create_service_yaml(self, file_name, name, ip=None):
-        if (ip is None):
-            index = len(self.get_all_name())
-            ip_num_4 = index % 255
-            ip_num_3 = int(2 + index / 255) % 255
-            ip_num_2 = int(100 + int(2 + index / 255) / 255) % 255
-            ip_num_1 = 10
-            ip = f"{ip_num_1}.{ip_num_2}.{ip_num_3}.{ip_num_4}"
+    def create_service_yaml(self, file_name, name):
         self.load_template_and_replace(str(Path(DATA_PATH, "template-svc.yaml")), Path(file_name, "svc.yaml"),
             name=name,
             ip=ip)
@@ -163,3 +210,8 @@ class _yaml(object):
                 pass
         path.rmdir()
         logger.info(f"remove {name}")
+
+
+kubeapi = pkg.kubeapi._kubeapi()
+db_info = kubeapi.get_all_pod("islab-db")
+db = _db(host=db_info["islab-db"]["pod_ip"], port=3306, user="root", password="password", database="test")

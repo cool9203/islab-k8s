@@ -204,14 +204,7 @@ class _kubeapi():
             collection_formats=collection_formats)
 
     def _apply(self, file_path):
-        os.system(f"kubectl apply -f {file_path}")
+        pass
 
     def _delete(self, type_name, name):
-        os.system(f"kubectl delete {type_name} {name}")
-
-def main():
-    kubeapi = _kubeapi()
-
-
-if (__name__ == "__main__"):
-    main()
+        pass

@@ -11,7 +11,7 @@ import pkg.dbapi
 import yaml
 from pathlib import Path
 
-kubeapi = pkg.kubeapi.__kubeapi()
+kubeapi = pkg.kubeapi._kubeapi()
 
 worker_name = pkg.dbapi.get_worker_name()
 
