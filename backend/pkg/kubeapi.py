@@ -203,6 +203,11 @@ class _kubeapi():
             _request_timeout=local_var_params.get('_request_timeout'),
             collection_formats=collection_formats)
 
+    def _apply_svc_pv_pvc(self, pod_name):
+        utils.create_from_yaml(self.api_client, f"./data/yaml/{pod_name}/svc.yaml")
+        utils.create_from_yaml(self.api_client, f"./data/yaml/{pod_name}/pv.yaml")
+        utils.create_from_yaml(self.api_client, f"./data/yaml/{pod_name}/pvc.yaml")
+
     def _apply_pod(self, pod_name):
         utils.create_from_yaml(self.api_client, f"./data/yaml/{pod_name}/pod.yaml")
 

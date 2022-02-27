@@ -136,6 +136,20 @@ class _yaml(object):
             name_list.append(element.name)
         return name_list
 
+    def get_yaml_context(self, name):
+        data = dict()
+
+        with Path("./data/yaml", name, "pod.yaml").open("r") as f:
+            pod_data = yaml.load(f, Loader=yaml.FullLoader)
+            data["cpu"] = pod_data["spec"]["containers"][0]["resources"]["requests"]["cpu"]
+            data["memory"] = pod_data["spec"]["containers"][0]["resources"]["requests"]["memory"]
+
+        with Path("./data/yaml", name, "pv.yaml").open("r") as f:
+            pv_data = yaml.load(f, Loader=yaml.FullLoader)
+            data["disk_size"] = pv_data["spec"]["capacity"]["storage"]
+
+        return data
+
     def __get_idle_ip(self, start_ip="10.100.0.0"):
         all_ip = sorted(kubeapi.get_all_svc().keys())
         ipa = ipaddress.ip_address(start_ip)
@@ -203,8 +217,8 @@ class _yaml(object):
         if (name in all_name):
             logger.info(f"edit pod {name} success")
             logger.debug(f"data : cpu:{cpu}, memory:{memory}, node_name:{node_name}, image:{image}")
-            path = Path(DATA_PATH, self.save_path, name)
-            self.create_pod_yaml(str(Path(path)), name, cpu, memory, node_name, self.docker_image)
+            path = Path(f"./data/yaml/{name}")
+            self.create_pod_yaml(path, name, cpu, memory, node_name, image)
         else:
             logger.info(f"edit pod {name} failed")
             raise Exception("name not have")
