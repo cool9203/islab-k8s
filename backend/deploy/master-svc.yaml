@@ -4,9 +4,11 @@ metadata:
   name: islab-k8s-service
   namespace: kube-system
 spec:
+  type: NodePort
   selector:
     app: islab-k8s-master
   ports:
     - protocol: TCP
       port: 80
       targetPort: 8080
+      nodePort: 30445

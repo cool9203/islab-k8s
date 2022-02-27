@@ -6,11 +6,7 @@ logger = log.get_logger(log_file_name="master", logger_name="", log_level=os.env
 from flask import Flask
 from flask_cors import CORS
 from waitress import serve
-
-try:
-    from pkg.api import master
-except Exception as e:
-    logger.error(e)
+from pkg.api import master
 
 
 def main():
@@ -34,6 +30,7 @@ def main():
     #dynamic load api
     try:
         master.add_url_rule(app)
+        logger.info("load master api success")
     except Exception as e:
         logger.error(e)
 

@@ -36,6 +36,7 @@ class gpu(MethodView):
             logger.error(e)
             return jsonify({"status":"unsuccess"})
 
+
 class pod(MethodView):
     def post(self, method):
         if (not method in ["GET", "CREATE", "DELETE", "RESTART"]):
@@ -43,8 +44,6 @@ class pod(MethodView):
 
         try:
             data = util.get_request_data()
-
-            #取得傳過來的資料
             name = data["name".upper()]
             token = data["token".upper()]
             gpu_status = manager.get(name)["gpu_status"]
@@ -65,6 +64,9 @@ class pod(MethodView):
                     manager.remove(name)
                 kubeapi._delete_pod(name)
                 kubeapi._apply_pod(name)
+        except Exception as e:
+            logger.error(e)
+            return jsonify({"status":"unsuccess"})
 
 def add_url_rule(app):
     api = gpu.as_view(f'gpu')
