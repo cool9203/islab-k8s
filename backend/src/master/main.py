@@ -6,7 +6,11 @@ logger = log.get_logger(log_file_name="master", logger_name="", log_level=os.env
 from flask import Flask
 from flask_cors import CORS
 from waitress import serve
-from pkg.api import master
+
+try:
+    from pkg.api import master
+except Exception as e:
+    logger.error(e)
 
 
 def main():
