@@ -19,10 +19,8 @@ class account(MethodView):
             if (method == "LOGIN"):
                 try:
                     result = pkg.dbapi.login(data["uid".upper()], data["passwd".upper()])
-                    if ("success" in result):
-                        return jsonify({"status":"success", "result":"success", "token":""})
-                    else:
-                        return jsonify({"status":"success", "result":"failed"})
+                    result.update({"status":"success", "result":"success", "token":""})
+                    return jsonify(result)
                 except Exception as e:
                     logger.error(e)
                     return jsonify({"status":"success", "result":"failed"})

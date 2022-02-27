@@ -19,6 +19,13 @@ class _kubeapi():
         self.api_client = ApiClient()
         logger.debug("kubeapi init finish")
 
+    def get_worker(self, worker_name, node_name):
+        all_worker = self.get_all_worker(worker_name)
+        for pod_name, pod_spec in all_worker.items():
+            if (node_name == pod_spec["node_name"]):
+                return pod_spec["pod_ip"]
+        raise Exception(f"not have '{worker_name}' on '{node_name}' node")
+
     def get_all_worker(self, worker_name):
         return self.get_all_pod(worker_name)
 
@@ -203,16 +210,29 @@ class _kubeapi():
             _request_timeout=local_var_params.get('_request_timeout'),
             collection_formats=collection_formats)
 
-    def _apply_svc_pv_pvc(self, pod_name):
-        utils.create_from_yaml(self.api_client, f"./data/yaml/{pod_name}/svc.yaml")
+    def _apply_pv_pvc(self, pod_name):
         utils.create_from_yaml(self.api_client, f"./data/yaml/{pod_name}/pv.yaml")
         utils.create_from_yaml(self.api_client, f"./data/yaml/{pod_name}/pvc.yaml")
 
     def _apply_pod(self, pod_name):
         utils.create_from_yaml(self.api_client, f"./data/yaml/{pod_name}/pod.yaml")
 
+    def _apply_svc(self, pod_name):
+        utils.create_from_yaml(self.api_client, f"./data/yaml/{pod_name}/svc.yaml")
+
     def _apply(self, file_path):
         utils.create_from_yaml(self.api_client, file_path)
 
     def _delete_pod(self, name, namespace="default"):
-        return self.v1.delete_namespaced_pod(name, namespace)
+        try:
+            self.v1.delete_namespaced_pod(name, namespace)
+            return True
+        except Exception as e:
+            return False
+
+    def _delete_svc(self, name, namespace="default"):
+        try:
+            self.v1.delete_namespaced_service(name, namespace)
+            return True
+        except Exception as e:
+            return False

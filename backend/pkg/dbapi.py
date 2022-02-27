@@ -1,3 +1,7 @@
+import logging
+
+logger = logging.getLogger(__name__)
+
 import yaml
 from pathlib import Path
 import pymysql.cursors
@@ -51,13 +55,13 @@ def login(uid, password):
     try:
         ret = db.select(f"SELECT * FROM account WHERE `uid` = '{uid}'")
         if (len(ret) == 0):
-            return "uid error"
+            raise Exception("uid error")
         if (password == ret[0]["password"]):
-            return "success"
+            return ret[0]
         else:
-            return "password error"
+            raise Exception("password error")
     except Exception as e:
-        return "error"
+        raise Exception("error")
 
 
 def register(uid, password, name):
@@ -147,15 +151,29 @@ class _yaml(object):
         with Path("./data/yaml", name, "pv.yaml").open("r") as f:
             pv_data = yaml.load(f, Loader=yaml.FullLoader)
             data["disk_size"] = pv_data["spec"]["capacity"]["storage"]
+            data["node_name"] = pv_data["spec"]["nodeAffinity"]["required"]["nodeSelectorTerms"][0]["matchExpressions"][0]["values"][0]
 
         return data
 
+    def __get_all_yaml_ip(self):
+        all_ip = list()
+        path = Path(f"./data/yaml")
+        for dir_name in path.iterdir():
+            try:
+                with Path(path, dir_name.name, "svc.yaml").open("r") as f:
+                    svc_data = yaml.load(f, Loader=yaml.FullLoader)
+                    all_ip.append(svc_data["spec"]["clusterIP"])
+            except Exception as e:
+                pass
+        return all_ip
+
     def __get_idle_ip(self, start_ip="10.100.0.0"):
-        all_ip = sorted(kubeapi.get_all_svc().keys())
+        all_ip = list(kubeapi.get_all_svc().keys()) + self.__get_all_yaml_ip()
+        logger.info(f"all_ip:{all_ip}")
         ipa = ipaddress.ip_address(start_ip)
         ipn = ipaddress.ip_network(f"{start_ip}/16")
         for ip in ipn.hosts():
-            if (not ip in all_ip):
+            if (not str(ip) in all_ip):
                 return str(ip)
         return self.__get_idle_ip(str(ipa + ipn.num_addresses))
 

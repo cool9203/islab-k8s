@@ -36,8 +36,8 @@ class _manager(threading.Thread):
         logger.debug(f"now use running : {self.running}")
 
     def _add_all_node(self):
-        node_list = self.kubeapi.get_all_node()
-        for node_name, node_status in node_list.items():
+        all_node = self.kubeapi.get_all_node()
+        for node_name, node_status in all_node.items():
             if (not node_name in self.queue):
                 self.queue[node_name] = dict()
                 self.max_gpu_count[node_name] = node_status["gpu"]
@@ -116,8 +116,7 @@ class _manager(threading.Thread):
             queue_index = self.get_uid_list(node_name).index(uid) - self.running[node_name] + 1
             return {"gpu_status":status, "time":remain_time, "queue_index":queue_index}
         except Exception as e:
-            logger.error(e)
-        return {"gpu_status":"NONE", "time":"", "queue_index":""}
+            return {"gpu_status":"NONE", "time":"", "queue_index":""}
 
     """
     這邊的概念是只卸載1個pod上的GPU，所以在unmount時只要卸載到就break，並且掛載一個上去

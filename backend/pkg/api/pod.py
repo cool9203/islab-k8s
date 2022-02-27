@@ -5,11 +5,16 @@ logger = logging.getLogger(__name__)
 from pkg.api import util
 from flask import Flask, jsonify
 from flask.views import MethodView
+import time
+import json
 import pkg.kubeapi
+import pkg.dbapi
 import pkg.management
 
 kubeapi = pkg.kubeapi._kubeapi()
+yaml_file = pkg.dbapi._yaml()
 manager = pkg.management._manager()
+manager.start()
 
 
 class gpu(MethodView):
@@ -46,24 +51,34 @@ class pod(MethodView):
             data = util.get_request_data()
             name = data["name".upper()]
             token = data["token".upper()]
-            gpu_status = manager.get(name)["gpu_status"]
+            node_name = yaml_file.get_yaml_context(name)["node_name"]
+            gpu_status = manager.get(node_name, name)["gpu_status"]
 
             if (method == "GET"):
-                pass
+                ret = kubeapi.get_all_pod(name)
+                if (len(ret) > 0):
+                    ip = list(kubeapi.get_all_svc(name).keys())[0]
+                    return jsonify({"status":"success", "pod_status":"ready", "ip":ip})
+                else:
+                    return jsonify({"status":"success", "pod_status":"noready"})
             elif (method == "CREATE"):
-                kubeapi._apply_svc_pv_pvc(name)
+                kubeapi._delete_svc(name)           # 因為有設定clusterIP，所以會引發重複設定的error，所以需要先delete，後apply
+                kubeapi._apply_svc(name)
                 kubeapi._apply_pod(name)
-                dbapi.register(name, name, "i913")
+                pkg.dbapi.register(name, "i913", name)
             elif (method == "DELETE"):
                 if (gpu_status in ["START", "WAIT"]):
-                    manager.remove(name)
+                    manager.remove(node_name, name)
                 kubeapi._delete_pod(name)
-                dbapi.uid_remove(name)
+                kubeapi._delete_svc(name)
+                pkg.dbapi.uid_remove(name)
             elif (method == "RESTART"):
                 if (gpu_status in ["START", "WAIT"]):
-                    manager.remove(name)
+                    manager.remove(node_name, name)
                 kubeapi._delete_pod(name)
+                time.sleep(1)
                 kubeapi._apply_pod(name)
+            return jsonify({"status":"success"})
         except Exception as e:
             logger.error(e)
             return jsonify({"status":"unsuccess"})
