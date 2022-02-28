@@ -190,7 +190,8 @@ function login(){
 }
 
 
-//count, 用來計算source_str裡有多少個target_strfunction string_count(source_str, target_str) {
+//count, 用來計算source_str裡有多少個target_str
+function string_count(source_str, target_str) {
     return source_str.split(target_str).length - 1
 }
 
