@@ -44,6 +44,8 @@ spec:
               mountPath: /app/deploy
             - name: data-dir
               mountPath: /app/data
+            - name: kube-config
+              mountPath: /root/.kube/config
       volumes:
         - name: log-dir
           hostPath:
@@ -57,3 +59,7 @@ spec:
           hostPath:
             type: Directory
             path: /etc/islab-k8s/backend/data
+        - name: kube-config
+          hostPath:
+            type: File
+            path: /etc/kubernetes/admin.conf

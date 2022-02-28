@@ -7,6 +7,7 @@ from kubernetes.client.rest import ApiException
 from kubernetes.client.api_client import ApiClient
 from kubernetes import client, config, utils
 import six
+import os
 
 
 class _kubeapi():
@@ -236,3 +237,51 @@ class _kubeapi():
             return True
         except Exception as e:
             return False
+
+    def mount_gpu_to_pod(self, pod_name, gpu_num=1, namespace="default"):
+        gpu_count = len(self.get_pod_mount_gpu_uuid(pod_name, namespace))
+        if (gpu_count == gpu_num):
+            return True
+
+        ret = self.v1.connect_get_namespaced_service_proxy_with_path("gpu-mounter-service", "kube-system", f"addgpu/namespace/{namespace}/pod/{pod_name}/gpu/{gpu_num}/isEntireMount/false")
+        logger.debug(f"{ret}")
+        if ("Success" in ret):
+            return True
+        return False
+
+    def remove_gpu_to_pod(self, pod_name, gpu_uuid=None, namespace="default", **kwargs):
+        if (gpu_uuid is None):
+            gpu_uuid = self.get_pod_mount_gpu_uuid(pod_name)
+
+        if (len(gpu_uuid) == 0):
+            return True
+
+        logger.debug("uuid:{gpu_uuid}")
+        form_params = list()
+        for uuid in gpu_uuid:
+            form_params.append(("uuids", uuid))
+        ret = self.__call_api(
+            name="gpu-mounter-service",
+            namespace="kube-system",
+            path=f"removegpu/namespace/{namespace}/pod/{pod_name}/force/1",
+            header={"Content-Type": "application/x-www-form-urlencoded"},
+            method="POST",
+            form=form_params,
+            path2=None)
+
+        logger.debug(ret)
+
+        if ("Success" in str(ret)):
+            return True
+        return False
+
+    def get_pod_mount_gpu_uuid(self, pod_name, namespace="default"):
+        ret = os.popen(f"kubectl exec -it {pod_name} -n {namespace} -- nvidia-smi -L").read()
+        if ("found" in ret):
+            return list()
+        uuid_list = list()
+        ret_split = ret.replace("(", "").replace(")", "").split("\n")
+        for line in ret_split:
+            if (len(line) > 0 and "gpu" in line.split(" ")[-1].lower()):
+                uuid_list.append(line.split(" ")[-1])
+        return uuid_list
