@@ -19,7 +19,7 @@ spec:
       containers:
         - name: islab-k8s-master
           image: yogawulala/k8s-api-server-master:latest
-          imagePullPolicy: Never #Always
+          imagePullPolicy: Always
           resources:
             requests:
               cpu: "2"

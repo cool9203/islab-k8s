@@ -19,7 +19,7 @@ spec:
       containers:
         - name: islab-k8s-worker
           image: yogawulala/k8s-api-server-worker:latest
-          imagePullPolicy: Never #Always
+          imagePullPolicy: Always
           securityContext:
             privileged: true
           ports:

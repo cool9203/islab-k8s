@@ -64,9 +64,9 @@ def login(uid, password):
         raise Exception("error")
 
 
-def register(uid, password, name):
+def register(uid, password, name, permission=4):
     try:
-        db.command(f"INSERT INTO account VALUES ('{uid}', '{password}', '{name}', 4)")
+        db.command(f"INSERT INTO account VALUES ('{uid}', '{password}', '{name}', {permission})")
         return True
     except Exception as e:
         return False
@@ -254,4 +254,4 @@ class _yaml(object):
 
 kubeapi = pkg.kubeapi._kubeapi()
 db_info = kubeapi.get_all_pod("islab-db")
-db = _db(host=db_info["islab-db"]["pod_ip"], port=3306, user="root", password="password", database="test")
+db = _db(host=db_info["islab-db"]["pod_ip"], port=3306, user="root", password="password", database="islab")

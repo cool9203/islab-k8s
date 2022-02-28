@@ -13,6 +13,7 @@ if [ ! -d ${WORKDIR} ]; then
 fi
 
 sudo cp -r ./deploy ./data ${WORKDIR}
+sudo mkdir ${WORKDIR}/data/yaml
 
 if [ "$1" = "deploy" ]; then
   kubectl apply -f deploy/service-account.yaml
