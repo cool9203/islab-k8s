@@ -245,7 +245,7 @@ class _kubeapi():
 
         ret = self.v1.connect_get_namespaced_service_proxy_with_path("gpu-mounter-service", "kube-system", f"addgpu/namespace/{namespace}/pod/{pod_name}/gpu/{gpu_num}/isEntireMount/false")
         logger.debug(f"{ret}")
-        if ("Success" in ret):
+        if ("success" in str(ret).lower()):
             return True
         return False
 
@@ -271,7 +271,7 @@ class _kubeapi():
 
         logger.debug(ret)
 
-        if ("Success" in str(ret)):
+        if ("success" in str(ret).lower()):
             return True
         return False
 

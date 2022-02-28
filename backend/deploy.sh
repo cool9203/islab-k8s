@@ -22,6 +22,7 @@ if [ "$1" = "deploy" ]; then
   kubectl apply -f deploy/master-svc.yaml
   kubectl apply -f deploy/gpu-mounter-master.yaml 
   kubectl apply -f deploy/gpu-mounter-worker.yaml 
+  kubectl apply -f deploy/gpu-mounter-svc.yaml
 
 elif [ "$1" = "redeploy" ]; then
   kubectl delete -f deploy/service-account.yaml
@@ -31,6 +32,7 @@ elif [ "$1" = "redeploy" ]; then
   kubectl delete -f deploy/master-svc.yaml
   kubectl delete -f deploy/gpu-mounter-master.yaml
   kubectl delete -f deploy/gpu-mounter-worker.yaml
+  kubectl delete -f deploy/gpu-mounter-svc.yaml
 
   kubectl apply -f deploy/service-account.yaml
   kubectl apply -f deploy/cluster-role-binding.yaml
@@ -39,6 +41,7 @@ elif [ "$1" = "redeploy" ]; then
   kubectl apply -f deploy/master-svc.yaml
   kubectl apply -f deploy/gpu-mounter-master.yaml
   kubectl apply -f deploy/gpu-mounter-worker.yaml
+  kubectl apply -f deploy/gpu-mounter-svc.yaml
 
 elif [ "$1" = "uninstall" ]; then
   kubectl delete -f deploy/service-account.yaml
@@ -48,6 +51,7 @@ elif [ "$1" = "uninstall" ]; then
   kubectl delete -f deploy/master-svc.yaml
   kubectl delete -f deploy/gpu-mounter-master.yaml
   kubectl delete -f deploy/gpu-mounter-worker.yaml
+  kubectl delete -f deploy/gpu-mounter-svc.yaml
 
 else
   echo "./deploy.sh [deploy | redeploy | uninstall]"

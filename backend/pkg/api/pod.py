@@ -23,7 +23,7 @@ class gpu(MethodView):
             data = util.get_request_data()
             name = data["name".upper()]
             token = data["token".upper()]
-            node_name = kubeapi.get_all_pod(name)["node_name"]
+            node_name = kubeapi.get_all_pod(name)[name]["node_name"]
 
             if (method == "ADD"):
                 if (manager.add(node_name, name)):

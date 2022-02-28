@@ -32,11 +32,21 @@ spec:
             - name: LISTEN_PORT
               value: "8080"
             - name: DEVELOPE
-              value: "true"
+              value: "false"
             - name: DEBUG
-              value: "true"
+              value: "false"
             - name: LOG_LEVEL
               value: "INFO"
+            - name: GPU_WEEKS
+              value: "0"
+            - name: GPU_DAYS
+              value: "0"
+            - name: GPU_HOURS
+              value: "3"
+            - name: GPU_MINUTES
+              value: "0"
+            - name: GPU_SECONDS
+              value: "0"
           volumeMounts:
             - name: log-dir
               mountPath: /app/log

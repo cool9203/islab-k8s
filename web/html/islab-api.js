@@ -1,4 +1,4 @@
-let url = "http://203.64.95.118:30001/api_v1";
+let url = "http://203.64.95.118:30001/";
 let public_key = "";
 auth();
 
@@ -98,12 +98,13 @@ function get_machine_all_list(){
 function get_machine_status(){
     let machine_name = document.getElementById("machine_name").value;
     let send_data = {
-        name:machine_name
+        name:machine_name,
+        token:""
     };
 
     $.ajax({
         type: "POST",                                           //傳輸協定 正常都是POST或GET
-        url: `${url}/machine/GET`,                              //設定api server url
+        url: `${url}/pod/GET`,                                  //設定api server url
         data: JSON.stringify(send_data),                        //要傳給api server的資料，若沒有可以不用這行
         contentType: "application/json; charset=utf-8",         //傳輸資料的型態，通常會建議傳json + utf8
         dataType: "json",                                       //api server回傳資料的型態，不打這行的話會自動判斷，留空的話我不保證也會自動判斷，建議自己打或直接刪掉這行
@@ -111,8 +112,7 @@ function get_machine_status(){
             console.log("get_all_machine_status: success");
             console.log(data);
             if (data["status"] == "success"){
-                data = data["data"];
-                alert(`status:${data['ready']}\nip:${data['ip']}\nports:${data['ports']}\ncpu:${data['cpu']}\nmemory:${data['memory']}\ngpu:${data['gpu']}\n`);
+                alert(data["pod_status"]);
             }else{
                 alert("error");
             }
@@ -124,12 +124,13 @@ function get_machine_status(){
 function get_machine_link_string(){
     let machine_name = document.getElementById("machine_name").value;
     let send_data = {
-        name:machine_name
+        name:machine_name,
+        token:""
     };
 
     $.ajax({
         type: "POST",                                           //傳輸協定 正常都是POST或GET
-        url: `${url}/machine/GET`,                              //設定api server url
+        url: `${url}/pod/GET`,                                  //設定api server url
         data: JSON.stringify(send_data),                        //要傳給api server的資料，若沒有可以不用這行
         contentType: "application/json; charset=utf-8",         //傳輸資料的型態，通常會建議傳json + utf8
         dataType: "json",                                       //api server回傳資料的型態，不打這行的話會自動判斷，留空的話我不保證也會自動判斷，建議自己打或直接刪掉這行
@@ -137,8 +138,12 @@ function get_machine_link_string(){
             console.log("get_all_machine_status: success");
             console.log(data);
             if (data["status"] == "success"){
-                data = data["data"];
-                alert(`ssh -J root@203.64.95.118:30003 root@${data['ip']}`);
+                if (data["pod_status"] != "ready"){
+                    alert("pod尚未開啟或名字錯誤");
+                }else{
+                    alert(`root@${data['ip']}`);
+                }
+                
             }else{
                 alert("error");
             }
@@ -174,20 +179,18 @@ function login(){
             }else{
                 sessionStorage["uid"] = data["uid"];
                 sessionStorage["token"] = data["token"];
-                if (data["permission"] == "user"){
+                if (parseInt(data["permission"]) > 0){
                     window.location.href = "user.html";
-                }else if (data["permission"] == "admin"){
+                }else if (parseInt(data["permission"]) == 0){
                     window.location.href = "management.html";
-                }
-                    
+                }  
             }
         }
     });
 }
 
 
-//count, 用來計算source_str裡有多少個target_str
-function string_count(source_str, target_str) {
+//count, 用來計算source_str裡有多少個target_strfunction string_count(source_str, target_str) {
     return source_str.split(target_str).length - 1
 }
 

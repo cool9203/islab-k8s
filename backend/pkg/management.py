@@ -6,6 +6,7 @@ import json
 import threading
 import datetime as dt
 import time
+import os
 import pkg.kubeapi
 import pkg.dbapi
 
@@ -21,27 +22,67 @@ class _manager(threading.Thread):
         self.uid = 0                                    # 每一個申請者對應到的申請id
         self.signal = True                              # 是否要繼續執行run function
         self.time_format = "%Y/%m/%d %H:%M:%S"          # datetime format
-        self.default_delta_time = {                     # 控制掛載後的卸載時間，days可以填365以上，他會自動計算
-            "weeks": 0,
-            "days": 0,
-            "hours": 3,
-            "minutes": 0,
-            "seconds": 0
-        }
         self.add_lock = False                           # add鎖，以防同時間有複數人要加入
+
+        #檢查default_delta_time
+        try:
+            self.default_delta_time = {                     # 控制掛載後的卸載時間，days可以填365以上，他會自動計算
+                "weeks": int(os.environ.get("GPU_WEEKS", 0)),
+                "days": int(os.environ.get("GPU_DAYS", 0)),
+                "hours": int(os.environ.get("GPU_HOURS", 3)),
+                "minutes": int(os.environ.get("GPU_MINUTES", 0)),
+                "seconds": int(os.environ.get("GPU_SECONDS", 0))
+            }
+        except Exception as e:
+            logger.error(e)
+            self.default_delta_time = {
+	        "weeks": 0,
+	        "days": 0,
+	        "hours": 3,
+	        "minutes": 0,
+	        "seconds": 0
+                }
+
+        zero_flag = True
+        for key, value in self.default_delta_time.items():
+            if (int(value) != 0):
+                zero_flag = False
+                break
+
+        if (zero_flag):
+            self.default_delta_time = {
+	        "weeks": 0,
+	        "days": 0,
+	        "hours": 3,
+	        "minutes": 0,
+	        "seconds": 0
+                }
 
         logger.debug(f"now use queue : {self.queue}")
         logger.debug(f"now use uid : {self.uid}")
         logger.debug(f"now use max_gpu_count : {self.max_gpu_count}")
         logger.debug(f"now use running : {self.running}")
+        logger.info(f"default_delta_time={self.default_delta_time}")
 
     def _add_all_node(self):
         all_node = self.kubeapi.get_all_node()
         for node_name, node_status in all_node.items():
             if (not node_name in self.queue):
                 self.queue[node_name] = dict()
-                self.max_gpu_count[node_name] = node_status["gpu"]
+                self.max_gpu_count[node_name] = int(node_status["gpu"])
                 self.running[node_name] = 0
+                self.__get_origin_running(node_name)
+                gpu_count = self.max_gpu_count[node_name]
+                running = self.running[node_name]
+                logger.info(f"add node '{node_name}' to queue, gpu:{gpu_count}, running:{running}")
+
+    def __get_origin_running(self, node_name):
+        all_pod = self.kubeapi.get_all_pod("slave-pod")
+        logger.info(f"get_origin_running : {all_pod}")
+        for pod_name, pod_data in all_pod.items():
+            if (pod_data["node_name"] == node_name):
+                origin_pod_name = "-".join(pod_name.split("-")[:-3])
+                self.add(node_name, origin_pod_name)
 
     def __get_all_name_list(self, node_name):
         all_name_list = list()
@@ -157,7 +198,7 @@ class _manager(threading.Thread):
     def __unmount(self, node_name, uid):
         try:
             name = self.queue[node_name][uid]["name"]
-            pkg.dbapi.add_log({"name":f"{node_name}/{pod_name}", "status":"DELETE", "start_time":self.queue[uid]["start_time"], "end_time":self.queue[uid]["end_time"]})
+            pkg.dbapi.add_log({"name":f"{node_name}/{name}", "status":"DELETE", "start_time":self.queue[node_name][uid]["start_time"], "end_time":self.queue[node_name][uid]["end_time"]})
             del self.queue[node_name][uid]
 
             ret = self.kubeapi.remove_gpu_to_pod(name)
@@ -173,6 +214,7 @@ class _manager(threading.Thread):
             logger.error(e)
             logger.debug(f"uid:{uid} unmount gpu failed. so restart pod")
             self.kubeapi._delete_pod(name)
+            time.sleep(3)
             self.kubeapi._apply_pod(name)
             self.running[node_name] -= 1
             return True
@@ -184,7 +226,7 @@ class _manager(threading.Thread):
         try:
             name = self.queue[node_name][uid]["name"]
             logger.debug(f"mount uid : {uid}, {name}")
-            ret = self.kubeapi.mount_gpu_to_pod(self.queue[uid]["name"])
+            ret = self.kubeapi.mount_gpu_to_pod(name)
             logger.debug(f"uid:{uid} gpu mount {ret} on {node_name}")
             if (ret):
                 self.queue[node_name][uid]["status"] = "START"
@@ -195,7 +237,7 @@ class _manager(threading.Thread):
             else:
                 return False
         except Exception as e:
-            logger.error(e)
+            #logger.error(e)
             return False
 
     """
@@ -207,20 +249,25 @@ class _manager(threading.Thread):
         logger.info("start time management")
 
         while (self.signal):
-            self._add_all_node()
+            try:
+                self._add_all_node()
 
-            for node_name in self.queue.keys():
-                logger.debug(f"{node_name} queue : {self.queue[node_name]}")
-                logger.debug(f"{node_name} running : {self.running[node_name]}")
+                for node_name in self.queue.keys():
+                    logger.debug(f"{node_name} queue : {self.queue[node_name]}")
+                    logger.debug(f"{node_name} running : {self.running[node_name]}")
 
-            for node_name in self.queue.keys():
-                uid_list = self.get_uid_list(node_name)
-                if (len(uid_list) > self.max_gpu_count[node_name] and self.running[node_name] == self.max_gpu_count[node_name]):
-                    self.__check(node_name, unmount=True)
-                else:
-                    self.__check(node_name, unmount=False)
+                for node_name in self.queue.keys():
+                    uid_list = self.get_uid_list(node_name)
+                    logger.info(uid_list, f"on '{node_name}'")
+                    if (len(uid_list) > self.max_gpu_count[node_name] and self.running[node_name] == self.max_gpu_count[node_name]):
+                        self.__check(node_name, unmount=True)
+                    else:
+                        self.__check(node_name, unmount=False)
 
-            time.sleep(self.sleep_time_s)
+                time.sleep(self.sleep_time_s)
+            except Exception as e:
+                logger.error(e)
+
         logger.info("end time management")
 
     def close(self):
