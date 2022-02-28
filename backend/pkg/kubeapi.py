@@ -56,7 +56,7 @@ class _kubeapi():
         data = dict()
         ret = self.v1.list_node()
         for node in ret.items:
-            gpu = node.status.capacity.get("nvidia.com/gpu")
+            gpu = node.status.capacity.get("nvidia.com/gpu", 0)
             cpu_capacity = node.status.capacity["cpu"]
             cpu_allocatable = node.status.allocatable["cpu"]
             mem_capacity = node.status.capacity["memory"]
