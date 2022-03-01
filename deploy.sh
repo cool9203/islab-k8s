@@ -63,5 +63,5 @@ elif [ "$1" = "client"  ]; then
   echo "deploy on client success"
 
 else
-  echo "Invalid parameter: $1 (must be \"deploy\", \"redeploy\" or \"uninstall\")"
+  echo "Invalid parameter: $1 (must be \"client\", \"deploy\", \"redeploy\" or \"uninstall\")"
 fi

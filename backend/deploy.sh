@@ -9,7 +9,7 @@ WORKDIR=/etc/islab-k8s/backend
 
 # check and create WORKDIR
 if [ ! -d ${WORKDIR} ]; then
-  mkdir ${WORKDIR}
+  sudo mkdir ${WORKDIR}
 fi
 
 sudo cp -r ./deploy ./data ${WORKDIR}
