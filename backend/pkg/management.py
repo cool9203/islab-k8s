@@ -75,6 +75,8 @@ class _manager(threading.Thread):
                 gpu_count = self.max_gpu_count[node_name]
                 running = self.running[node_name]
                 logger.info(f"add node '{node_name}' to queue, gpu:{gpu_count}, running:{running}")
+            else:
+                self.max_gpu_count[node_name] = int(node_status["gpu"])
 
     def __get_origin_running(self, node_name):
         all_pod = self.kubeapi.get_all_pod("slave-pod")
