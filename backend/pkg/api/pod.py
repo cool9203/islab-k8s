@@ -76,7 +76,7 @@ class pod(MethodView):
                 if (gpu_status in ["START", "WAIT"]):
                     manager.remove(node_name, name)
                 kubeapi._delete_pod(name)
-                time.sleep(1)
+                time.sleep(3)
                 kubeapi._apply_pod(name)
             return jsonify({"status":"success"})
         except Exception as e:

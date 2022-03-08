@@ -3,12 +3,17 @@
     <title>使用者</title>
     <meta http-equiv="Content-Language" content="zh-cn">
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <script
+        src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+        crossorigin="anonymous"></script>
     </meta>
 
     <body>
-        <div>
-            <a href="machine_status.html">查看機器狀態</a>
-        </div>
+        <button onclick="if (confirm('你當前環境會消失，需要重新安裝\n確定要重開pod嗎?')) apply('RESTART')">重啟機器</button>
+        <br>
+        <br>
+        <a href="http://hk.noobyard.com/article/p-ugqvzyly-pt.html">需要用WINSCP連線SSH請參考該網站</a>
     </body>
     <script type="text/javascript" src="islab-api.js"></script>
 </html>

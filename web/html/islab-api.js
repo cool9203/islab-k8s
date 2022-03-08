@@ -37,7 +37,18 @@ function register(){
 
 
 function apply(type_name){
-    let machine_name = document.getElementById("machine_name").value;
+    let machine_name;
+    try{
+        try{
+            machine_name = document.getElementById("machine_name").value;
+        }catch{
+            try{
+                machine_name = sessionStorage["uid"];
+            }catch{
+                machine_name = prompt("請輸入機器名稱");
+            }
+        }
+    }catch{}
 
     let send_data = {
         name:machine_name,
