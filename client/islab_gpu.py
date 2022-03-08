@@ -19,8 +19,8 @@ logger.addHandler(handler)
 
 __api_host = "http://203.64.95.118"
 __api_port = "30001"
-__api_url = "{__api_host}:{__api_port}"
-__version__ = "20220228"
+__api_url = f"{__api_host}:{__api_port}"
+__version__ = "20220308"
 __author__ = "yoga, email:octer18@gmail.com"
 
 
