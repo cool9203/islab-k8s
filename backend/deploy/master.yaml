@@ -22,7 +22,7 @@ spec:
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: "2"
+              cpu: "500m"
               memory: "1024M"
           command: ["/bin/bash"]
           args: ["-c", "/app/main"]

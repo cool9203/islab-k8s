@@ -15,8 +15,8 @@ spec:
           name: web
       resources:
         requests:
-          memory: "1024M"
-          cpu: "2"
+          memory: "256M"
+          cpu: "250m"
       ports:
         - containerPort: 80
   volumes:

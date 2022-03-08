@@ -12,8 +12,8 @@ spec:
       image: mariadb:10.7.1
       resources:
         requests:
-          memory: "500M"
-          cpu: "1"
+          memory: "512M"
+          cpu: "250m"
       ports:
         - containerPort: 3306
       env:

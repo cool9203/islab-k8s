@@ -10,7 +10,7 @@ spec:
     image: yogawulala/islab-sshd
     resources:
       requests:
-        memory: "2048M"
-        cpu: "4"
+        memory: "512M"
+        cpu: "500m"
     ports:
       - containerPort: 22
