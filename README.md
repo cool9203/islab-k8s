@@ -1,8 +1,8 @@
 # islab-k8s
 
 ## Note and Document  
-[normal](https://hackmd.io/@yogawulala/rybib53YY)  
-[slide](https://hackmd.io/@yogawulala/rybib53YY#/)  
+[normal](https://hackmd.io/@yogawulala/rybib53YY?type=view#/)  
+[slide](https://hackmd.io/@yogawulala/rybib53YY?type=slide#/)  
 
 ## how to deploy on control plane
 ```
