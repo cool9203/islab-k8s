@@ -7,6 +7,7 @@ import os, platform
 from urllib.parse import urljoin
 import requests
 import json
+from pathlib import Path
 
 import logging
 logger = logging.getLogger(__name__)
@@ -22,6 +23,7 @@ __api_port = "30001"
 __api_url = f"{__api_host}:{__api_port}"
 __version__ = "20220308"
 __author__ = "yoga, email:octer18@gmail.com"
+__data_path = "/root/data/.islab_gpu.txt"
 
 
 """
@@ -53,6 +55,28 @@ def get_remain_time():
 def get_status():
     data = __call_api("GET")
     return data["gpu_status"]
+
+
+def get_train_epoch():
+    try:
+        with Path(__data_path).open("r") as f:
+            try:
+                epoch = int(f.readline().replace("\n", "").replace("\t", "").replace("\r", ""))
+            except Exception as e:
+                epoch = 0
+    except Exception as e:
+        reset_train_epoch()
+        epoch = 0
+    return epoch
+
+
+def add_train_epoch(epoch):
+    with Path(__data_path).open("w") as f:
+        f.write(str(epoch+1))
+
+def reset_train_epoch():
+    with Path(__data_path).open("w") as f:
+        f.write(str(0))
 
 
 def test():

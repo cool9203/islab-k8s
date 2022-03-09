@@ -42,6 +42,7 @@ def main():
 
     @islab.register
     def train(epochs, net, x, y):
+        train_epoch = islab.get_train_epoch()
         device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         print(f"use GPU:{torch.cuda.is_available()} in train")
         print(f"use device:{device}")
@@ -55,15 +56,16 @@ def main():
         optimizer = torch.optim.Adam(net.parameters(), lr=1e-5)
         loss_func = torch.nn.MSELoss()
 
-        for epoch in tqdm(range(epochs)):
+        for epoch in tqdm(range(train_epoch, epochs)):
             optimizer.zero_grad()
             output = net(x)
             loss = loss_func(output, y)
             loss.backward()
             optimizer.step()
+            islab.add_train_epoch(epoch)
 
     BATCH_SIZE = 1
-    EPOCHS = 999999
+    TARGET_EPOCH = 999999
     net = NET(BATCH_SIZE, 1)
 
     x = torch.tensor([
@@ -75,7 +77,7 @@ def main():
 
     y = torch.tensor([1, 2, 1, 2], dtype=torch.float)
 
-    train(EPOCHS, net, x, y)
+    train(TARGET_EPOCH, net, x, y)
 
 
 if (__name__ == "__main__"):
