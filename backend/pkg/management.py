@@ -109,6 +109,7 @@ class _manager(threading.Thread):
 
         if (not node_name in self.queue.keys()):
             logger.info(f"pod:'{node_name}' not in cluster. so add gpu queue failed.")
+            self.add_lock = False
             return False
 
         all_name_list = self.__get_all_name_list(node_name)
