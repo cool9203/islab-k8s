@@ -19,13 +19,26 @@ manager.start()
 
 class gpu(MethodView):
     def post(self, method):
+        if (not method in ["SADD", "ADD", "REMOVE", "GET"]):
+            return jsonify({"status":"unsuccess"})
+
         try:
             data = util.get_request_data()
             name = data["name".upper()]
             token = data["token".upper()]
             node_name = kubeapi.get_all_pod(name)[name]["node_name"]
 
-            if (method == "ADD"):
+            if (method == "SADD"):
+                if (token == "islabs102a"):
+                    weeks = data["weeks"]
+                    days = data["days"]
+                    hours = data["hours"]
+                    minutes = data["minutes"]
+                    seconds = data["seconds"]
+                    delta_time = {"weeks":weeks, "days":days, "hours":hours , "minutes":minutes, "seconds":seconds}
+                    if (manager.add(node_name, name, delta_time)):
+                        return jsonify({"status":"success"})
+            elif (method == "ADD"):
                 if (manager.add(node_name, name)):
                     return jsonify({"status":"success"})
             elif(method == "REMOVE"):
