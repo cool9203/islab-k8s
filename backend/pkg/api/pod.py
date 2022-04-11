@@ -71,7 +71,8 @@ class pod(MethodView):
                 ret = kubeapi.get_all_pod(name)
                 if (len(ret) > 0):
                     ip = list(kubeapi.get_all_svc(name).keys())[0]
-                    return jsonify({"status":"success", "pod_status":"ready", "ip":ip})
+                    status = str(ret[0]["status"])
+                    return jsonify({"status":"success", "pod_status":status, "ip":ip})
                 else:
                     return jsonify({"status":"success", "pod_status":"noready"})
             elif (method == "CREATE"):
