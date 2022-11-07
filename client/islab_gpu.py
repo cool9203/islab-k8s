@@ -140,18 +140,22 @@ def register(func):
         while (get_status() in ["NONE", "DELETE"]):
             __mount_gpu()
         logger.info("add gpu queue success")
+        try:
+            while (get_status() != "START"):
+                time.sleep(2)
+            logger.info("mount gpu success")
 
-        while (get_status() != "START"):
-            time.sleep(2)
-        logger.info("mount gpu success")
-
-        #實際執行的func
-        result = func(*args ,**kwargs)
-
-        #歸還GPU
-        __unmount_gpu()
-        logger.info("remove gpu queue success")
-        
+            #實際執行的func
+            result = func(*args ,**kwargs)
+            #歸還GPU
+            __unmount_gpu()
+            logger.info("remove gpu queue success")
+        #當使用者手動中斷時會自動歸還
+        except KeyboardInterrupt:
+            #歸還GPU
+            __unmount_gpu()
+            logger.info("remove gpu queue success")
+            
         return result
     return new_func
 
