@@ -137,9 +137,14 @@ def register(func):
     @wraps(func)    #註冊reutrn的func，將func的屬性抄到return的func裡
     def new_func(*args ,**kwargs):
         #申請GPU
-        while (get_status() in ["NONE", "DELETE"]):
-            __mount_gpu()
-        logger.info("add gpu queue success")
+        try:
+            while (get_status() in ["NONE", "DELETE"]):
+                __mount_gpu()
+            logger.info("add gpu queue success")
+        except KeyboardInterrupt:
+            if get_status() == "START":
+                __unmount_gpu()
+                logger.info("remove gpu queue success")
         try:
             while (get_status() != "START"):
                 time.sleep(2)
@@ -151,11 +156,10 @@ def register(func):
             __unmount_gpu()
             logger.info("remove gpu queue success")
         #當使用者手動中斷時會自動歸還
-        except KeyboardInterrupt:
+        except KeyboardInterrupt:            
             #歸還GPU
             __unmount_gpu()
             logger.info("remove gpu queue success")
-            
         return result
     return new_func
 
